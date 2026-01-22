@@ -9,9 +9,6 @@ const Encuesta = () => {
     const vantaInstanceRef = useRef(null);
 
     // Estados del formulario
-    const [nombre, setNombre] = useState(() => localStorage.getItem('encuesta_nombre') || '');
-    const [email, setEmail] = useState(() => localStorage.getItem('encuesta_email') || '');
-    const [telefono, setTelefono] = useState(() => localStorage.getItem('encuesta_telefono') || '');
     const [respuestas, setRespuestas] = useState(() => {
         const saved = localStorage.getItem('encuesta_respuestas');
         return saved ? JSON.parse(saved) : {};
@@ -192,11 +189,8 @@ const Encuesta = () => {
 
     // Persistencia en localStorage
     useEffect(() => {
-        localStorage.setItem('encuesta_nombre', nombre);
-        localStorage.setItem('encuesta_email', email);
-        localStorage.setItem('encuesta_telefono', telefono);
         localStorage.setItem('encuesta_respuestas', JSON.stringify(respuestas));
-    }, [nombre, email, telefono, respuestas]);
+    }, [respuestas]);
 
     useEffect(() => {
         if (vantaRef.current && !vantaInstanceRef.current) {
@@ -383,45 +377,14 @@ const Encuesta = () => {
         }
 
         // Simular un pequeño procesamiento para feedback visual
-        setTimeout(async () => {
+        setTimeout(() => {
             // Calcular resultados localmente
             const resultadosCalculados = calcularResultados();
-
-            // Enviar por correo vía FormSubmit (AJAX)
-            try {
-                const emailContent = {
-                    Subject: `Nuevo Diagnóstico: ${nombre}`,
-                    Empresa: nombre,
-                    Email: email,
-                    Telefono: telefono,
-                    "Puntuación Total": `${resultadosCalculados.puntuacionTotal}/100`,
-                    "Nivel de Madurez": resultadosCalculados.nivelMadurez,
-                    Diagnóstico: resultadosCalculados.diagnostico,
-                    "Fortalezas": resultadosCalculados.fortalezas.map(f => `${f.nombre} (${f.puntuacion})`).join(', '),
-                    "Oportunidades": resultadosCalculados.oportunidades.map(o => `${o.nombre} (${o.puntuacion})`).join(', '),
-                    "Detalle por Categoría": resultadosCalculados.categorias.map(c => `${c.nombre}: ${c.puntuacion}`).join('\n')
-                };
-
-                await fetch("https://formsubmit.co/ajax/cesar@updm.mx", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(emailContent)
-                });
-            } catch (err) {
-                console.error("Error enviando email:", err);
-                // No detenemos el flujo si falla el correo, seguimos mostrando los resultados
-            }
 
             setResultados(resultadosCalculados);
             setEnviado(true);
 
             // Limpiar localStorage al finalizar con éxito
-            localStorage.removeItem('encuesta_nombre');
-            localStorage.removeItem('encuesta_email');
-            localStorage.removeItem('encuesta_telefono');
             localStorage.removeItem('encuesta_respuestas');
 
             setLoading(false);
@@ -486,48 +449,7 @@ const Encuesta = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-12">
 
-                        {/* Datos personales */}
-                        <div className="bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                                <h3 className="text-xl font-bold text-white">Información del Consultante</h3>
-                            </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-blue-200 uppercase mb-2 ml-1">Nombre Completo</label>
-                                <input
-                                    type="text"
-                                    value={nombre}
-                                    onChange={(e) => setNombre(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition hover:bg-white/10"
-                                    placeholder="Juan Pérez García"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-blue-200 uppercase mb-2 ml-1">Correo Electrónico</label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition hover:bg-white/10"
-                                    placeholder="contacto@empresa.com"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-blue-200 uppercase mb-2 ml-1">Teléfono (Opcional)</label>
-                                <input
-                                    type="tel"
-                                    value={telefono}
-                                    onChange={(e) => setTelefono(e.target.value)}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition hover:bg-white/10"
-                                    placeholder="+52 555-1234"
-                                />
-                            </div>
-                        </div>
 
                         {/* Leyenda de opciones */}
                         <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-xl">
